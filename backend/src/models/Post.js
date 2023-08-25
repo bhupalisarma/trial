@@ -29,9 +29,8 @@ const postSchema = new mongoose.Schema({
     ],
     comments: [
         {
-
-            content: String,
-            createdAt: Date,
+            type: mongoose.Schema.Types.ObjectId,
+            ref: 'Comment',
         },
     ],
 },
