@@ -2,9 +2,10 @@ const Post = require("../models/Post");
 const Classroom = require("../models/Classroom");
 const User = require("../models/User");
 
-exports.createPost = async (req, res) => {
+const createPost = async (req, res) => {
   try {
-    const { heading, content, userId } = req.body;
+    const { heading, content, attachmentUrl } = req.body;
+    const userId = req.user._id;
     const classroomId = req.params.classroomId;
 
     // Update references in classroom and user
@@ -17,21 +18,11 @@ exports.createPost = async (req, res) => {
         message: "Classroom or user Not found",
       });
     }
-    // Create the new post
-    // const newPost = new Post({
-    //     heading,
-    //     content,
-    //     files,
-    //     comments,
-    //     author: userId,
-    //     classroom: classroomId,
-    // });
-
-    // await newPost.save();
 
     const newPost = await Post.create({
       heading,
       content,
+      attachmentUrl,
       author: userId,
       classroom: classroomId,
     });
@@ -49,4 +40,25 @@ exports.createPost = async (req, res) => {
     console.error(error);
     res.status(500).json({ message: String(error) });
   }
+};
+
+const getAllPosts = async (req, res) => {
+  try {
+    const { classroomId } = req.body;
+    const posts = await Post.find({ classroom: classroomId })
+      .populate("author", "name")
+      .populate("comments", "content")
+      .exec();
+    res.status(200).json({
+      message: "Successfully fetched all the posts of this classroom.",
+      posts,
+    });
+  } catch (error) {
+    res.status(500).json({ message: String(error) });
+  }
+};
+
+module.exports = {
+  createPost,
+  getAllPosts,
 };

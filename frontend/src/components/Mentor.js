@@ -32,7 +32,7 @@ const Mentor = () => {
 			const accessToken = localStorage.getItem("accessToken");
 			if (accessToken) {
 				const response = await axios.get(
-					"http://localhost:5000/api/classrooms",
+					"http://localhost:8000/api/classrooms",
 					{
 						headers: {
 							"auth-token": accessToken,
@@ -56,7 +56,7 @@ const Mentor = () => {
 		try {
 			// Make a login request to the backend and get the access token
 			const response = await axios.post(
-				"http://localhost:5000/api/auth/login",
+				"http://localhost:8000/api/auth/login",
 				{
 					// Provide login credentials here, e.g., username and password
 					// For example: username: 'mentor2', password: 'password123'
@@ -147,7 +147,7 @@ const Mentor = () => {
 			try {
 				const accessToken = localStorage.getItem("accessToken");
 				const response = await axios.post(
-					"http://localhost:5000/api/classrooms",
+					"http://localhost:8000/api/classrooms",
 					newClassroom,
 					{
 						headers: {

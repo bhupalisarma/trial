@@ -28,7 +28,7 @@ Before running the application, make sure you have the following:
 3. Install dependencies: `npm install`
 4. Start the server: `npm start`
 
-The backend server should now be running on `http://localhost:5000`.
+The backend server should now be running on `http://localhost:8000`.
 
 ## Frontend Setup
 

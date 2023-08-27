@@ -68,7 +68,7 @@ const Random = () => {
 			const accessToken = localStorage.getItem("accessToken")
 			try {
 				const response = await axios.get(
-					"http://localhost:5000/api/classrooms",
+					"http://localhost:8000/api/classrooms",
 					{
 						headers: {
 							"auth-token": accessToken
