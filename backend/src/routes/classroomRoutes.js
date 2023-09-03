@@ -24,6 +24,6 @@ router.get("/:classroomId/posts", getClassroomById);
 
 router.post("/:classroomId/posts", verifyToken, createPost);
 
-router.post("/:postId/comment", addCommentToPost);
+router.post("/:postId/comment", verifyToken, addCommentToPost);
 
 module.exports = router;
