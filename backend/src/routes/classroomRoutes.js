@@ -8,6 +8,7 @@ const {
 } = require("../controllers/classroomController");
 const { createPost } = require("../controllers/postController");
 const { getAllPosts } = require("../controllers/postController");
+const { addCommentToPost } = require("../controllers/postController");
 
 // Get all classrooms
 router.get("/", verifyToken, getAllClassrooms);
@@ -23,6 +24,6 @@ router.get("/:classroomId/posts", getClassroomById);
 
 router.post("/:classroomId/posts", verifyToken, createPost);
 
-router.get("/:classroomId/posts", getAllPosts);
+router.post("/:postId/comment", addCommentToPost);
 
 module.exports = router;

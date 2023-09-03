@@ -58,7 +58,35 @@ const getAllPosts = async (req, res) => {
   }
 };
 
+const addCommentToPost = async (req, res) => {
+  try {
+    const { content } = req.body;
+    const postId = req.params.postId;
+
+    const post = await Post.findById(postId);
+
+    if (!post) {
+      return res.status(404).json({
+        success: false,
+        message: "Post not found",
+      });
+    }
+
+    post.comments.push(content);
+    await post.save();
+
+    res.status(201).json({
+      message: "Comment added successfully",
+      comment: content
+    });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: String(error) });
+  }
+};
+
 module.exports = {
   createPost,
   getAllPosts,
+  addCommentToPost,
 };
