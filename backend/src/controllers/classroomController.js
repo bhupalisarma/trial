@@ -27,11 +27,12 @@ const getClassroomById = async (req, res) => {
   try {
     const classroomId = req.params.classroomId;
     const classroom = await Classroom.findById(classroomId)
-      .populate("posts", "heading content")
+      .populate("posts", "heading content attachmentUrl comments")
       .exec();
     if (!classroom) {
       return res.status(404).json({ error: "Classroom not found" });
     }
+    console.log("classroom details", classroom)
     res.status(200).json({ data: classroom });
   } catch (error) {
     console.error("Error fetching classroom details:", error);
