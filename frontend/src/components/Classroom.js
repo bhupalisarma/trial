@@ -5,7 +5,7 @@ import axios from "axios";
 const Classroom = () => {
   const { classroomId } = useParams();
   const [posts, setPosts] = useState([]);
-  const [students, setStudents] = useState([]);
+  const [students, setStudents] = useState();
   const [classrooms, setClassrooms] = useState([]);
 
   const handleCreatePost = async (e) => {
@@ -22,14 +22,12 @@ const Classroom = () => {
 
     try {
       const accessToken = localStorage.getItem("accessToken");
-      // console.log("form data is:",formData.postHeading)
       const response = await axios.post(
         `http://localhost:8000/api/classrooms/${classroomId}/posts`,
         postData,
         {
           headers: {
             "auth-token": accessToken,
-            // 'Content-Type': 'multipart/form-data',
           },
         }
       );
@@ -38,7 +36,6 @@ const Classroom = () => {
       setPosts([...posts, createdPost]);
     } catch (error) {
       console.error("Error creating post:", error);
-      // Handle error case here
     }
 
     e.target.reset();
@@ -57,10 +54,9 @@ const Classroom = () => {
             },
           }
         );
-        setClassrooms(response.data); // Set the classrooms state
+        setPosts(response.data.data.posts);
       } catch (error) {
         console.error("Error fetching classrooms:", error);
-        // Handle error case here
       }
     };
     fetchClassrooms();
@@ -73,9 +69,8 @@ const Classroom = () => {
         const response = await axios.get(
           `http://localhost:8000/api/classrooms/${classroomId}`
         );
-        const classroomData = response.data;
-        console.log(classroomData);
-        // Use the classroomData to display the subject name and standard
+        const classroomData = response.data.data;
+        setClassrooms(classroomData);
       } catch (error) {
         console.error("Error fetching classroom data:", error);
       }
@@ -180,101 +175,72 @@ const Classroom = () => {
         </form>
       </div>
 
-      {posts.length > 0 ? (
-        <div className="bg-white rounded shadow p-4">
-          <h3 className="text-xl font-semibold mb-2">Posts</h3>
-          {posts.map((post) => (
-            <div key={post.id} className="mb-4">
-              <h4 className="text-lg font-semibold mb-1">{post.heading}</h4>
-              <p className="text-gray-800 mb-1">{post.content}</p>
-              {post.files && post.files.length > 0 && (
+      {/* Display Posts */}
+      <div>
+        <h3 className="text-xl font-semibold mb-4">Posts</h3>
+        {posts.length === 0 ? (
+          <p>No posts available.</p>
+        ) : (
+          posts.map((post) => (
+            <div key={post._id} className="bg-gray-100 rounded p-4 mb-4">
+              <h4 className="text-lg font-semibold">{post.heading}</h4>
+              <p>{post.content}</p>
+              {post.attachmentUrl && (
                 <div className="mt-2">
-                  <h5 className="text-md font-semibold mb-1">Attachments:</h5>
-                  {post.files.map((file, index) => (
-                    <div key={index} className="flex items-center mt-1">
-                      <svg
-                        xmlns="http://www.w3.org/2000/svg"
-                        fill="none"
-                        viewBox="0 0 24 24"
-                        stroke="currentColor"
-                        className="w-4 h-4 mr-1 text-gray-500"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth="2"
-                          d="M10 19l-7-7m0 0l7-7m-7 7h18"
-                        />
-                      </svg>
-                      <a
-                        href="#"
-                        className="text-blue-500 hover:text-blue-600"
-                        onClick={() => handleDownloadFile(file)}
-                      >
-                        {file.name}
-                      </a>
-                    </div>
-                  ))}
+                  <label className="block text-sm font-medium text-gray-700">
+                    Attachment URL:
+                  </label>
+                  <a
+                    href={post.attachmentUrl}
+                    className="text-blue-500 underline"
+                    style={{
+                      maxWidth: "300px", // Adjust the max width as needed
+                      overflow: "hidden",
+                      whiteSpace: "nowrap",
+                      textOverflow: "ellipsis",
+                      display: "inline-block", // Ensure ellipsis works
+                    }}
+                    target="_blank" // Open in a new tab/window
+                    rel="noopener noreferrer" // Recommended for security
+                  >
+                    {post.attachmentUrl}
+                  </a>
                 </div>
               )}
-              <p className="text-gray-500 text-sm">
-                {post.createdAt.toLocaleString()}
-              </p>
-              <div className="flex flex-items">
-                <span>Attachment URL: </span>
-                <a
-                  href={post.attachmentUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="text-gray-500 text-md"
+              {/* Display existing comments */}
+              {post.comments && post.comments.length > 0 && (
+                <div className="mt-4">
+                  <h5 className="text-md font-semibold mb-2">Comments:</h5>
+                  <ul>
+                    {post.comments.map((comment, index) => (
+                      <li key={index}>
+                        <p>{comment}</p>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              <form
+                onSubmit={(e) => handleCreateComment(post._id, e)}
+                className="mt-4"
+              >
+                <input
+                  type="text"
+                  name="commentContent"
+                  placeholder="Add a comment"
+                  required
+                />
+                <button
+                  type="submit"
+                  className="bg-indigo-500 hover:bg-indigo-600 text-white py-1 px-2 rounded ml-2"
                 >
-                  {post.attachmentUrl}
-                </a>
-              </div>
-              {/* Comment Section */}
-              <div className="mt-4">
-                <h5 className="text-md font-semibold mb-1">Comments:</h5>
-                {post.comments.map((comment) => (
-                  <div key={comment.id} className="flex items-center mt-1">
-                    <svg
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="none"
-                      viewBox="0 0 24 24"
-                      stroke="currentColor"
-                      className="w-4 h-4 mr-1 text-gray-500"
-                    >
-                      <path
-                        strokeLinecap="round"
-                        strokeLinejoin="round"
-                        strokeWidth="2"
-                        d="M10 19l-7-7m0 0l7-7m-7 7h18"
-                      />
-                    </svg>
-                    <p className="text-gray-800">{comment.content}</p>
-                  </div>
-                ))}
-                <form onSubmit={(e) => handleCreateComment(post.id, e)}>
-                  <textarea
-                    name="commentContent"
-                    rows="2"
-                    className="w-full rounded border-gray-300 mt-2"
-                    placeholder="Add a comment..."
-                    required
-                  ></textarea>
-                  <button
-                    type="submit"
-                    className="bg-gray-200 hover:bg-gray-300 text-gray-800 py-1 px-2 rounded mt-2"
-                  >
-                    Add Comment
-                  </button>
-                </form>
-              </div>
+                  Add Comment
+                </button>
+              </form>
             </div>
-          ))}
-        </div>
-      ) : (
-        <p className="text-gray-600">No posts yet.</p>
-      )}
+          ))
+        )}
+      </div>
     </div>
   );
 };
