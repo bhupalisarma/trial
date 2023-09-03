@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
 import axios from "axios";
+import { BeatLoader } from "react-spinners";
 
 const Classroom = () => {
   const { classroomId } = useParams();
   const [posts, setPosts] = useState([]);
   const [students, setStudents] = useState();
   const [classrooms, setClassrooms] = useState([]);
+  const [isCommentSubmittingMap, setIsCommentSubmittingMap] = useState({});
 
   const handleCreatePost = async (e) => {
     e.preventDefault();
@@ -79,34 +81,57 @@ const Classroom = () => {
     fetchClassroomData();
   }, [classroomId]);
 
-  const handleCreateComment = (postId, e) => {
+  const handleCreateComment = async (postId, e) => {
     e.preventDefault();
-    const comment = {
-      id: posts.length + 1,
-      content: e.target.elements.commentContent.value,
-      createdAt: new Date(),
-    };
-    const updatedPosts = posts.map((post) => {
-      if (post.id === postId) {
-        return {
-          ...post,
-          comments: [...post.comments, comment],
-        };
-      }
-      return post;
-    });
-    setPosts(updatedPosts);
-    e.target.reset();
-  };
+    const commentContent = e.target.commentContent.value;
 
-  const handleDownloadFile = (file) => {
-    const url = URL.createObjectURL(file);
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = file.name;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    const commentData = {
+      content: commentContent,
+    };
+
+    // Set loading status for the specific post
+    setIsCommentSubmittingMap((prevState) => ({
+      ...prevState,
+      [postId]: true,
+    }));
+
+    try {
+      const accessToken = localStorage.getItem("accessToken");
+      const response = await axios.post(
+        `http://localhost:8000/api/classrooms/${postId}/comment`,
+        commentData,
+        {
+          headers: {
+            "auth-token": accessToken,
+          },
+        }
+      );
+
+      const createdComment = response.data.comment;
+
+      // Update the posts state to include the new comment
+      setPosts((prevPosts) =>
+        prevPosts.map((post) => {
+          if (post._id === postId) {
+            return {
+              ...post,
+              comments: [...post.comments, createdComment],
+            };
+          }
+          return post;
+        })
+      );
+
+      e.target.reset();
+    } catch (error) {
+      console.error("Error creating comment:", error);
+    } finally {
+      // Reset loading status for the specific post
+      setIsCommentSubmittingMap((prevState) => ({
+        ...prevState,
+        [postId]: false,
+      }));
+    }
   };
 
   const handleAddStudent = () => {
@@ -234,7 +259,11 @@ const Classroom = () => {
                   type="submit"
                   className="bg-indigo-500 hover:bg-indigo-600 text-white py-1 px-2 rounded ml-2"
                 >
-                  Add Comment
+                  {isCommentSubmittingMap[post._id] ? (
+                    <BeatLoader color="#fff" size={8} />
+                  ) : (
+                    "Add Comment"
+                  )}
                 </button>
               </form>
             </div>
