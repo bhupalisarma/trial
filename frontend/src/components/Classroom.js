@@ -9,6 +9,8 @@ const Classroom = () => {
   const [students, setStudents] = useState();
   const [classrooms, setClassrooms] = useState([]);
   const [isCommentSubmittingMap, setIsCommentSubmittingMap] = useState({});
+  const [inviteEmail, setInviteEmail] = useState(""); // State to store the invitee's email
+  const [isInvitePopupOpen, setIsInvitePopupOpen] = useState(false); // State to control the popup visibility
 
   const handleCreatePost = async (e) => {
     e.preventDefault();
@@ -134,10 +136,36 @@ const Classroom = () => {
     }
   };
 
-  const handleAddStudent = () => {
-    const studentName = prompt("Enter the name of the student");
-    if (studentName) {
-      setStudents([...students, studentName]);
+  const handleInviteClick = () => {
+    setIsInvitePopupOpen(true); // Open the invite popup
+  };
+
+  const handleInviteSubmit = async () => {
+    try {
+      const accessToken = localStorage.getItem("accessToken");
+      const response = await axios.post(
+        "http://localhost:8000/api/auth/send-email",
+        {
+          userEmail: inviteEmail, // Use the email from the state
+          classroomId: classroomId, // Use the classroomId from the state
+        },
+        {
+          headers: {
+            "Content-Type": "application/json",
+            "auth-token": accessToken,
+          },
+        }
+      );
+
+      // Handle the response as needed
+      console.log("Invite email sent:", response.data);
+
+      setInviteEmail("");
+      
+      // Close the invite popup
+      setIsInvitePopupOpen(false);
+    } catch (error) {
+      console.error("Error sending invite email:", error);
     }
   };
 
@@ -151,10 +179,10 @@ const Classroom = () => {
       <div className="flex justify-between mb-4">
         <h3 className="text-xl font-semibold">Create New Post</h3>
         <button
-          className="bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded"
-          onClick={handleAddStudent}
+          className="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded"
+          onClick={handleInviteClick} // Open the invite popup when clicked
         >
-          Add Student
+          Add Mentee
         </button>
       </div>
 
@@ -270,6 +298,38 @@ const Classroom = () => {
           ))
         )}
       </div>
+
+      {/* Invite Student Popup */}
+      {isInvitePopupOpen && (
+        <div className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-50 z-10">
+          <div className="bg-white p-4 rounded shadow">
+            <h2 className="text-lg font-semibold mb-2">
+              Invite Student by Email
+            </h2>
+            <input
+              type="email"
+              className="w-full rounded border-gray-300 mb-2"
+              placeholder="Enter Email"
+              value={inviteEmail}
+              onChange={(e) => setInviteEmail(e.target.value)}
+            />
+            <div className="flex justify-end">
+              <button
+                className="bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded mr-2"
+                onClick={handleInviteSubmit}
+              >
+                Send Invite
+              </button>
+              <button
+                className="bg-gray-300 hover:bg-gray-400 text-gray-800 py-2 px-4 rounded"
+                onClick={() => setIsInvitePopupOpen(false)} // Close the invite popup
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
