@@ -16,6 +16,13 @@ const classroomSchema = new mongoose.Schema({
     ref: "User",
     required: true,
   },
+  mentees: [
+    {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: false,
+    },
+  ],
   posts: [
     {
       type: mongoose.Schema.Types.ObjectId,

@@ -2,20 +2,25 @@
 
 const Classroom = require("../models/Classroom");
 
-// Get all classrooms created by the logged-in mentor
+// Get all classrooms created by the logged-in user
 const getAllClassrooms = async (req, res) => {
   try {
-    const isUserAdmin = req.user.role === "admin";
+    const userRole = req.user.role;
 
-    if (isUserAdmin) {
-      // Fetch all classrooms without filtering for admin users
+    if (userRole === "admin") {
       const classrooms = await Classroom.find().populate("mentor", "email"); // Populate the mentor field with only the email
       res.json(classrooms);
-    } else {
-      // Fetch classrooms created by the logged-in mentor
+    } else if (userRole === "mentor") {
       const mentorId = req.user._id;
       const classrooms = await Classroom.find({ mentor: mentorId });
       res.json(classrooms);
+    } else if (userRole === "mentee") {
+      const menteeId = req.user._id;
+      const classrooms = await Classroom.find({ mentees: menteeId });
+      res.json(classrooms);
+    } else {
+      // Handle any other user roles or unknown roles
+      res.status(400).json({ error: "Invalid user role" });
     }
   } catch (error) {
     res.status(500).json({ error: "Failed to fetch classrooms" });
@@ -32,7 +37,7 @@ const getClassroomById = async (req, res) => {
     if (!classroom) {
       return res.status(404).json({ error: "Classroom not found" });
     }
-    console.log("classroom details", classroom)
+    console.log("classroom details", classroom);
     res.status(200).json({ data: classroom });
   } catch (error) {
     console.error("Error fetching classroom details:", error);
